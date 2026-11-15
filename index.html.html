@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SakuHarian — Alat Produktivitas &amp; Keuangan Sehari-hari</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .ambient-bg {
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -15%, rgba(16, 185, 129, 0.14), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 10%, rgba(6, 182, 212, 0.08), transparent);
+    }
+    html:not(.dark) .ambient-bg {
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -15%, rgba(16, 185, 129, 0.10), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 10%, rgba(14, 165, 233, 0.08), transparent);
+    }
+    .glass-card {
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 8px 24px -8px rgba(0,0,0,0.22);
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.28); border-radius: 9999px; }
+    #qrcode-box img, #qrcode-box canvas { margin: 0 auto; border-radius: 10px; }
+  </style>
+</head>
+<body class="ambient-bg bg-slate-50 text-slate-900 dark:bg-zinc-950 dark:text-zinc-100 min-h-screen flex flex-col transition-colors duration-200 antialiased">
+
+  <!-- Top Navigation -->
+  <header class="sticky top-0 z-30 border-b border-slate-200/80 dark:border-zinc-800/80 bg-white/75 dark:bg-zinc-950/75 backdrop-blur-xl">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 flex items-center justify-center text-white shrink-0 shadow-md shadow-emerald-500/25 ring-1 ring-white/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+          </svg>
+        </div>
+        <div class="truncate">
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight truncate bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent">SakuHarian</h1>
+            <span class="hidden lg:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">PRO</span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-zinc-400 hidden sm:block">Keuangan, Tugas, Kalkulator &amp; QR dalam satu tempat</p>
+        </div>
+      </div>
+
+      <!-- Desktop Tabs -->
+      <nav class="hidden md:flex items-center gap-1 bg-slate-100/90 dark:bg-zinc-900/90 p-1 rounded-xl border border-slate-200/80 dark:border-zinc-800/80" aria-label="Navigasi utama">
+        <button type="button" data-tab="keuangan" class="nav-tab inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          Keuangan
+        </button>
+        <button type="button" data-tab="tugas" class="nav-tab inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Tugas &amp; Fokus
+        </button>
+        <button type="button" data-tab="kalkulator" class="nav-tab inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          Kalkulator
+        </button>
+        <button type="button" data-tab="waqr" class="nav-tab inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+          WA &amp; QR
+        </button>
+      </nav>
+
+      <!-- Right Controls -->
+      <div class="flex items-center gap-2 shrink-0">
+        <span id="live-clock" class="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-zinc-900/90 text-slate-600 dark:text-zinc-300 border border-slate-200/80 dark:border-zinc-800/80 tabular-nums">
+          --:--
+        </span>
+        <button type="button" id="theme-toggle" title="Ganti Tema Terang/Gelap" class="p-2 rounded-xl border border-slate-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shadow-sm">
+          <svg id="icon-sun" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg id="icon-moon" class="w-4 h-4 block dark:hidden text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Tab Bar -->
+    <div class="md:hidden border-t border-slate-200/80 dark:border-zinc-800/80 px-3 py-2 flex items-center gap-1.5 overflow-x-auto">
+      <button type="button" data-tab="keuangan" class="nav-tab flex-1 min-w-fit px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Keuangan</button>
+      <button type="button" data-tab="tugas" class="nav-tab flex-1 min-w-fit px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-zinc-400">Tugas &amp; Fokus</button>
+      <button type="button" data-tab="kalkulator" class="nav-tab flex-1 min-w-fit px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-zinc-400">Kalkulator</button>
+      <button type="button" data-tab="waqr" class="nav-tab flex-1 min-w-fit px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-zinc-400">WA &amp; QR</button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+
+    <!-- PANEL 1: KEUANGAN HARIAN -->
+    <section id="panel-keuangan" class="tab-panel active space-y-6">
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-zinc-900 dark:to-zinc-900/70 border border-slate-200/80 dark:border-zinc-800/80 glass-card">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-medium text-slate-500 dark:text-zinc-400">Saldo Saat Ini</p>
+            <span class="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </span>
+          </div>
+          <p id="fin-balance" class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2 tabular-nums text-slate-900 dark:text-white">Rp 0</p>
+        </div>
+        <div class="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-br from-white to-emerald-50/40 dark:from-zinc-900 dark:to-emerald-950/20 border border-slate-200/80 dark:border-emerald-500/20 glass-card">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Total Pemasukan</p>
+            <span class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg>
+            </span>
+          </div>
+          <p id="fin-income" class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2 tabular-nums text-emerald-600 dark:text-emerald-400">Rp 0</p>
+        </div>
+        <div class="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-br from-white to-rose-50/40 dark:from-zinc-900 dark:to-rose-950/20 border border-slate-200/80 dark:border-rose-500/20 glass-card">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-medium text-rose-600 dark:text-rose-400">Total Pengeluaran</p>
+            <span class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-500 flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg>
+            </span>
+          </div>
+          <p id="fin-expense" class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-2 tabular-nums text-rose-600 dark:text-rose-400">Rp 0</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Form Tambah Transaksi -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="p-5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200/80 dark:border-zinc-800/80 glass-card">
+            <h2 class="text-base font-semibold mb-4 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Catat Transaksi Baru
+            </h2>
+            <form id="fin-form" class="space-y-3.5">
+              <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800">
+                <button type="button" id="type-expense-btn" class="py-2 rounded-lg text-xs font-semibold bg-rose-500 text-white shadow-sm transition-all">Pengeluaran</button>
+                <button type="button" id="type-income-btn" class="py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-zinc-400 transition-all">Pemasukan</button>
+              </div>
+              <div>
+                <label for="fin-title" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Keterangan</label>
+                <input id="fin-title" type="text" required placeholder="Contoh: Makan siang, Penjualan toko..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 transition-all" />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="fin-amount" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Nominal (Rp)</label>
+                  <input id="fin-amount" type="number" min="1" required placeholder="25000" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 transition-all" />
+                </div>
+                <div>
+                  <label for="fin-category" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Kategori</label>
+                  <select id="fin-category" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 transition-all">
+                    <option value="Makan & Minum">Makan &amp; Minum</option>
+                    <option value="Transportasi">Transportasi</option>
+                    <option value="Belanja Harian">Belanja Harian</option>
+                    <option value="Tagihan & Pulsa">Tagihan &amp; Pulsa</option>
+                    <option value="Usaha & Gaji">Usaha &amp; Gaji</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold text-sm transition-all shadow-md shadow-emerald-500/20 active:scale-[0.99]">
+                Simpan Transaksi
+              </button>
+            </form>
+          </div>
+
+          <!-- Grafik Pengeluaran -->
+          <div class="p-5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200/80 dark:border-zinc-800/80 glass-card">
+            <h2 class="text-base font-semibold mb-3">Sebaran Pengeluaran</h2>
+            <div class="relative h-60">
+              <canvas id="fin-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daftar Transaksi -->
+        <div class="lg:col-span-7 p-5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200/80 dark:border-zinc-800/80 glass-card flex flex-col">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <h2 class="text-base font-semibold">Riwayat Transaksi</h2>
+            <div class="flex flex-wrap items-center gap-2">
+              <select id="fin-filter" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-xs font-medium">
+                <option value="all">Semua</option>
+                <option value="income">Pemasukan</option>
+                <option value="expense">Pengeluaran</option>
+              </select>
+              <button type="button" id="fin-copy-summary" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-xs font-medium transition-colors">Salin Laporan</button>
+              <button type="button" id="fin-export-csv" class="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 text-xs font-medium transition-colors">Unduh CSV</button>
+              <button type="button" id="fin-clear-all" class="px-3 py-1.5 rounded-lg bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25 text-xs font-medium transition-colors">Reset</button>
+            </div>
+          </div>
+          <div id="fin-list" class="space-y-2.5 flex-1 overflow-y-auto max-h-[520px] pr-1"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 2: TUGAS & TIMER FOKUS -->
+    <section id="panel-tugas" class="tab-panel space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Timer Fokus Pomodoro -->
+        <div class="lg:col-span-5 p-6 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200/80 dark:border-zinc-800/80 glass-card flex flex-col items-center text-center">
+          <div class="w-full flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold">Timer Fokus</h2>
+            <button type="button" id="pomo-mute" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors">Suara: Nyala</button>
+          </div>
+
+          <div class="flex gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 mb-6 w-full">
+            <button type="button" data-pomo="25" class="pomo-mode flex-1 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-white shadow-sm">Fokus 25m</button>
+            <button type="button" data-pomo="5" class="pomo-mode flex-1 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-zinc-400">Istirahat 5m</button>
+            <button type="button" data-pomo="15" class="pomo-mode flex-1 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-zinc-400">Panjang 15m</button>
+          </div>
+
+          <!-- Animated SVG Progress Ring -->
+          <div class="relative w-52 h-52 flex items-center justify-center mb-6">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" stroke-width="6" class="text-slate-200 dark:text-zinc-800" />
+              <circle id="pomo-ring" cx="60" cy="60" r="54" fill="none" stroke="url(#pomoGrad)" stroke-width="6" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="0" class="transition-all duration-500" />
+              <defs>
+                <linearGradient id="pomoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#34d399" />
+                  <stop offset="100%" stop-color="#06b6d4" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="pomo-display" class="text-5xl font-extrabold tracking-tight tabular-nums">25:00</span>
+              <span id="pomo-status" class="text-xs font-medium text-slate-500 dark:text-zinc-400 mt-1">Siap mulai</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 w-full">
+            <button type="button" id="pomo-start" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold text-sm transition-all shadow-md shadow-emerald-500/20">Mulai</button>
+            <button type="button" id="pomo-reset" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 font-semibold text-sm transition-colors">Ulang</button>
+          </div>
+        </div>
+
+        <!-- Daftar Tugas Harian -->
+        <div class="lg:col-span-7 p-6 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200/80 dark:border-zinc-800/80 glass-card flex flex-col">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 class="text-base font-semibold">Daftar Tugas Hari Ini</h2>
+              <p id="todo-stats" class="text-xs text-slate-500 dark:text-zinc-400">0 selesai dari 0 tugas</p>
+            </div>
+            <div class="flex gap-1 bg-slate-100 dark:bg-zinc-950 p-1 rounded-xl border border-slate-200 dark:border-zinc-800">
+              <button type="button" data-todo-filter="all" class="todo-filter px-2.5 py-1 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 shadow-sm">Semua</button>
+              <button type="button" data-todo-filter="active" class="todo-filter px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 dark:text-zinc-400">Aktif</button>
+              <button type="button" data-todo-filter="done" class="todo-filter px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 dark:text-zinc-400">Selesai</button>
+            </div>
+          </div>
+
+          <form id="todo-form" class="flex gap-2 mb-4">
+            <input id="todo-input" type="text" required placeholder="Tulis tugas baru (misal: Bayar tagihan listrik)..." class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 transition-all" />
+            <button type="submit" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold text-sm shrink-0 transition-all shadow-sm">Tambah</button>
+          </form>
+
+          <div id="todo-list" class="space-y-2 flex-1 overflow-y-auto max-h-[360px] pr-1"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 3: KALKULATOR PINTAR -->
+    <section id="panel-kalkulator" class="tab-panel space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- 1. Kalkulator Diskon & Pajak -->
+        <div class="p-5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200/80 dark:border-zinc-800/80 glass-card space-y-4">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+            </span>
+            <h2 class="text-base font-semibold">Kalkulator Diskon &amp; Pajak</h2>
+          </div>
+          <div class="space-y-3">
+            <div>
+              <label for="disc-price" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Harga Awal (Rp)</label>
+              <input id="disc-price" type="number" min="0" value="150000" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="disc-pct" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Diskon (%)</label>
+                <input id="disc-pct" type="number" min="0" max="100" value="20" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60" />
+              </div>
+              <div>
+                <label for="disc-tax" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">PPN / Pajak (%)</label>
+                <input id="disc-tax" type="number" min="0" max="100" value="11" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60" />
+              </div>
+            </div>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 space-y-1.5">
+            <div class="flex justify-between text-xs text-slate-500 dark:text-zinc-400">
+              <span>Potongan Harga:</span>
+              <span id="disc-saved" class="font-medium text-emerald-600 dark:text-emerald-400">Rp 30.000</span>
+            </div>
+            <div class="flex justify-between text-xs text-slate-500 dark:text-zinc-400">
+              <span>Pajak:</span>
+              <span id="disc-tax-val" class="font-medium">Rp 13.200</span>
+            </div>
+            <div class="pt-2 border-t border-slate-200 dark:border-zinc-800 flex justify-between items-baseline">
+              <span class="text-xs font-semibold">Harga Akhir:</span>
+              <span id="disc-final" class="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">Rp 133.200</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Hitung Patungan (Split Bill) -->
+        <div class="p-5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200/80 dark:border-zinc-800/80 glass-card space-y-4">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </span>
+            <h2 class="text-base font-semibold">Patungan / Split Bill</h2>
+          </div>
+          <div class="space-y-3">
+            <div>
+              <label for="split-total" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Total Tagihan (Rp)</label>
+              <input id="split-total" type="number" min="0" value="240000" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="split-people" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Jumlah Orang</label>
+                <input id="split-people" type="number" min="1" value="4" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60" />
+              </div>
+              <div>
+                <label for="split-tip" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Layanan / Tip (%)</label>
+                <input id="split-tip" type="number" min="0" max="100" value="5" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60" />
+              </div>
+            </div>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 space-y-2">
+            <div class="flex justify-between text-xs text-slate-500 dark:text-zinc-400">
+              <span>Total + Layanan:</span>
+              <span id="split-grand" class="font-medium">Rp 252.000</span>
+            </div>
+            <div class="pt-2 border-t border-slate-200 dark:border-zinc-800 flex justify-between items-baseline">
+              <span class="text-xs font-semibold">Per Orang:</span>
+              <span id="split-each" class="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">Rp 63.000</span>
+            </div>
+          </div>
+          <button type="button" id="split-copy" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-xs font-semibold transition-colors">
+            Salin Rincian Patungan
+          </button>
+        </div>
+
+        <!-- 3. Konverter Satuan -->
+        <div class="p-5 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200/80 dark:border-zinc-800/80 glass-card space-y-4">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-violet-500/15 text-violet-500 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+            </span>
+            <h2 class="text-base font-semibold">Konverter Satuan Cepat</h2>
+          </div>
+          <div>
+            <label for="conv-cat" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Jenis Satuan</label>
+            <select id="conv-cat" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm">
+              <option value="weight">Berat (kg, gram, ons, lb)</option>
+              <option value="length">Panjang (km, m, cm, inci)</option>
+              <option value="temp">Suhu (°C, °F, K)</option>
+            </select>
+          </div>
+          <div class="space-y-3">
+            <div class="flex gap-2">
+              <input id="conv-val-a" type="number" step="any" value="1" class="w-1/2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm" />
+              <select id="conv-unit-a" class="w-1/2 px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm"></select>
+            </div>
+            <div class="text-center text-xs font-semibold text-slate-400">=</div>
+            <div class="flex gap-2">
+              <input id="conv-val-b" type="number" step="any" readonly class="w-1/2 px-3 py-2 rounded-xl bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-sm font-bold text-emerald-600 dark:text-emerald-400" />
+              <select id="conv-unit-b" class="w-1/2 px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm"></select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PANEL 4: GENERATOR LINK WHATSAPP & QR CODE -->
+    <section id="panel-waqr" class="tab-panel space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 p-6 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200/80 dark:border-zinc-800/80 glass-card space-y-4">
+          <div>
+            <h2 class="text-base font-semibold">Generator Link WhatsApp &amp; QR Code</h2>
+            <p class="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Kirim pesan WA tanpa perlu simpan nomor kontak, atau buat QR Code untuk dibagikan.</p>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label for="wa-phone" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Nomor WhatsApp (awalan 08 atau 62)</label>
+              <input id="wa-phone" type="tel" value="081234567890" placeholder="081234567890" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 transition-all" />
+            </div>
+            <div>
+              <label for="wa-text" class="block text-xs font-medium text-slate-500 dark:text-zinc-400 mb-1">Pesan Otomatis (Opsional)</label>
+              <textarea id="wa-text" rows="3" placeholder="Halo, saya ingin bertanya..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 transition-all">Halo, saya ingin memesan / bertanya mengenai produk ini.</textarea>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800">
+            <p class="text-xs text-slate-500 dark:text-zinc-400 mb-1">Hasil Link:</p>
+            <p id="wa-link-preview" class="text-xs font-mono break-all text-emerald-600 dark:text-emerald-400"></p>
+          </div>
+
+          <div class="flex flex-wrap gap-2.5">
+            <button type="button" id="wa-copy-btn" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-xs font-semibold transition-colors">Salin Link</button>
+            <a id="wa-open-btn" href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-xs font-semibold transition-all shadow-md shadow-emerald-500/20 inline-flex items-center gap-1.5">Buka di WhatsApp</a>
+          </div>
+        </div>
+
+        <!-- QR Code Preview -->
+        <div class="lg:col-span-5 p-6 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-slate-200/80 dark:border-zinc-800/80 glass-card flex flex-col items-center justify-center text-center space-y-4">
+          <h3 class="text-sm font-semibold">QR Code Siap Pindai</h3>
+          <div id="qrcode-box" class="p-4 bg-white rounded-2xl border-2 border-emerald-500/25 shadow-md inline-block"></div>
+          <p class="text-xs text-slate-500 dark:text-zinc-400">Arahkan kamera HP ke QR Code di atas untuk langsung membuka link.</p>
+          <button type="button" id="qr-download" class="px-4 py-2 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 text-xs font-semibold transition-colors">Unduh Gambar QR (PNG)</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-semibold shadow-lg opacity-0 pointer-events-none transition-all duration-200 translate-y-2">
+    Tersimpan!
+  </div>
+
+  <script>
+    (function () {
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => document.querySelectorAll(sel);
+
+      function showToast(msg) {
+        const toast = $('#toast');
+        toast.textContent = msg;
+        toast.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+        }, 2200);
+      }
+
+      function formatRp(num) {
+        const n = Number(num) || 0;
+        return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+      }
+
+      function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => showToast('Berhasil disalin!')).catch(() => fallbackCopy(text));
+        } else {
+          fallbackCopy(text);
+        }
+      }
+
+      function fallbackCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showToast('Berhasil disalin!');
+        } catch (e) {
+          showToast('Gagal menyalin');
+        }
+        document.body.removeChild(ta);
+      }
+
+      function loadStorage(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch (e) {
+          return fallback;
+        }
+      }
+
+      function saveStorage(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (e) {}
+      }
+
+      // ---------- Live Clock & Theme ----------
+      function updateClock() {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        $('#live-clock').textContent = hh + ':' + mm + ' WIB';
+      }
+      updateClock();
+      setInterval(updateClock, 15000);
+
+      const savedTheme = loadStorage('sakuharian_theme', 'dark');
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+      }
+      $('#theme-toggle').addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        saveStorage('sakuharian_theme', isDark ? 'dark' : 'light');
+        renderFinanceChart();
+      });
+
+      // ---------- Tab Navigation ----------
+      $$('.nav-tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-tab');
+          $$('.nav-tab').forEach((b) => {
+            const active = b.getAttribute('data-tab') === target;
+            if (b.closest('nav')) {
+              b.className = active
+                ? 'nav-tab inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                : 'nav-tab inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100';
+            } else {
+              b.className = active
+                ? 'nav-tab flex-1 min-w-fit px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                : 'nav-tab flex-1 min-w-fit px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-zinc-400';
+            }
+          });
+          $$('.tab-panel').forEach((p) => p.classList.remove('active'));
+          $('#panel-' + target).classList.add('active');
+        });
+      });
+
+      // ---------- MODULE 1: KEUANGAN ----------
+      const defaultTx = [
+        { id: 1, type: 'income', title: 'Pemasukan Harian', amount: 350000, category: 'Usaha & Gaji', date: 'Hari ini' },
+        { id: 2, type: 'expense', title: 'Makan Siang & Kopi', amount: 35000, category: 'Makan & Minum', date: 'Hari ini' },
+        { id: 3, type: 'expense', title: 'Isi Bensin Motor', amount: 25000, category: 'Transportasi', date: 'Hari ini' },
+        { id: 4, type: 'expense', title: 'Paket Data Internet', amount: 65000, category: 'Tagihan & Pulsa', date: 'Hari ini' }
+      ];
+      let transactions = loadStorage('sakuharian_tx', defaultTx);
+      let currentTxType = 'expense';
+      let finChart = null;
+
+      function setTxType(type) {
+        currentTxType = type;
+        if (type === 'expense') {
+          $('#type-expense-btn').className = 'py-2 rounded-lg text-xs font-semibold bg-rose-500 text-white shadow-sm transition-all';
+          $('#type-income-btn').className = 'py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-zinc-400 transition-all';
+        } else {
+          $('#type-income-btn').className = 'py-2 rounded-lg text-xs font-semibold bg-emerald-500 text-white shadow-sm transition-all';
+          $('#type-expense-btn').className = 'py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-zinc-400 transition-all';
+        }
+      }
+      $('#type-expense-btn').addEventListener('click', () => setTxType('expense'));
+      $('#type-income-btn').addEventListener('click', () => setTxType('income'));
+
+      function renderFinance() {
+        const income = transactions.filter((t) => t.type === 'income').reduce((a, b) => a + b.amount, 0);
+        const expense = transactions.filter((t) => t.type === 'expense').reduce((a, b) => a + b.amount, 0);
+        $('#fin-balance').textContent = formatRp(income - expense);
+        $('#fin-income').textContent = formatRp(income);
+        $('#fin-expense').textContent = formatRp(expense);
+
+        const filter = $('#fin-filter').value;
+        const list = $('#fin-list');
+        const filtered = transactions.filter((t) => filter === 'all' || t.type === filter);
+
+        if (filtered.length === 0) {
+          list.innerHTML = '<div class="text-center py-10 text-xs text-slate-500 dark:text-zinc-400">Belum ada transaksi di kategori ini.</div>';
+        } else {
+          list.innerHTML = filtered.map((t) => `
+            <div class="group flex items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50/90 dark:bg-zinc-950/90 border border-slate-200/80 dark:border-zinc-800/80 hover:border-emerald-500/30 transition-colors">
+              <div class="min-w-0 flex items-center gap-3">
+                <span class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${t.type === 'income' ? 'bg-emerald-500/15 text-emerald-500' : 'bg-rose-500/15 text-rose-500'}">
+                  ${t.type === 'income'
+                    ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg>'
+                    : '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg>'}
+                </span>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium truncate">${escapeHtml(t.title)}</p>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-200/70 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300">${escapeHtml(t.category)}</span>
+                    <span class="text-[11px] text-slate-400 dark:text-zinc-500">${escapeHtml(t.date)}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2.5 shrink-0">
+                <span class="text-sm font-bold tabular-nums ${t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
+                  ${t.type === 'income' ? '+' : '-'}${formatRp(t.amount)}
+                </span>
+                <button type="button" data-del-tx="${t.id}" title="Hapus" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+        renderFinanceChart();
+      }
+
+      function renderFinanceChart() {
+        const ctx = $('#fin-chart');
+        if (!ctx || typeof Chart === 'undefined') return;
+        const grouped = {};
+        transactions.filter((t) => t.type === 'expense').forEach((t) => {
+          grouped[t.category] = (grouped[t.category] || 0) + t.amount;
+        });
+        const labels = Object.keys(grouped);
+        const data = Object.values(grouped);
+        const isDark = document.documentElement.classList.contains('dark');
+
+        if (finChart) finChart.destroy();
+        finChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: labels.length ? labels : ['Belum ada pengeluaran'],
+            datasets: [{
+              data: data.length ? data : [1],
+              backgroundColor: labels.length
+                ? ['#10b981', '#f43f5e', '#3b82f6', '#f59e0b', '#8b5cf6', '#64748b']
+                : [isDark ? '#27272a' : '#e2e8f0'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: isDark ? '#a1a1aa' : '#475569',
+                  boxWidth: 10,
+                  padding: 14,
+                  font: { size: 11 }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      $('#fin-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = $('#fin-title').value.trim();
+        const amount = Number($('#fin-amount').value);
+        const category = $('#fin-category').value;
+        if (!title || amount <= 0) return;
+
+        const now = new Date();
+        const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        transactions.unshift({
+          id: Date.now(),
+          type: currentTxType,
+          title,
+          amount,
+          category,
+          date: timeStr
+        });
+        saveStorage('sakuharian_tx', transactions);
+        $('#fin-title').value = '';
+        $('#fin-amount').value = '';
+        renderFinance();
+        showToast('Transaksi dicatat!');
+      });
+
+      $('#fin-list').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-del-tx]');
+        if (!btn) return;
+        const id = Number(btn.getAttribute('data-del-tx'));
+        transactions = transactions.filter((t) => t.id !== id);
+        saveStorage('sakuharian_tx', transactions);
+        renderFinance();
+        showToast('Transaksi dihapus');
+      });
+
+      $('#fin-filter').addEventListener('change', renderFinance);
+
+      $('#fin-copy-summary').addEventListener('click', () => {
+        const income = transactions.filter((t) => t.type === 'income').reduce((a, b) => a + b.amount, 0);
+        const expense = transactions.filter((t) => t.type === 'expense').reduce((a, b) => a + b.amount, 0);
+        const text = `Laporan SakuHarian:\n• Pemasukan: ${formatRp(income)}\n• Pengeluaran: ${formatRp(expense)}\n• Saldo: ${formatRp(income - expense)}`;
+        copyText(text);
+      });
+
+      $('#fin-export-csv').addEventListener('click', () => {
+        const rows = [['Tipe', 'Keterangan', 'Kategori', 'Nominal', 'Waktu']];
+        transactions.forEach((t) => rows.push([t.type, '"' + t.title.replace(/"/g, '""') + '"', t.category, t.amount, t.date]));
+        const csv = rows.map((r) => r.join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'keuangan-sakuharian.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('CSV berhasil diunduh');
+      });
+
+      $('#fin-clear-all').addEventListener('click', () => {
+        transactions = [];
+        saveStorage('sakuharian_tx', transactions);
+        renderFinance();
+        showToast('Catatan keuangan dikosongkan');
+      });
+
+      // ---------- MODULE 2: TUGAS & POMODORO ----------
+      const defaultTodos = [
+        { id: 1, text: 'Cek stok barang & catat pengeluaran harian', done: true },
+        { id: 2, text: 'Balas pesan penting di WhatsApp', done: false },
+        { id: 3, text: 'Fokus kerja 25 menit tanpa gangguan', done: false }
+      ];
+      let todos = loadStorage('sakuharian_todos', defaultTodos);
+      let todoFilter = 'all';
+
+      function renderTodos() {
+        const doneCount = todos.filter((t) => t.done).length;
+        $('#todo-stats').textContent = `${doneCount} selesai dari ${todos.length} tugas`;
+        const filtered = todos.filter((t) => {
+          if (todoFilter === 'active') return !t.done;
+          if (todoFilter === 'done') return t.done;
+          return true;
+        });
+
+        const list = $('#todo-list');
+        if (filtered.length === 0) {
+          list.innerHTML = '<div class="text-center py-8 text-xs text-slate-500 dark:text-zinc-400">Tidak ada tugas di daftar ini.</div>';
+          return;
+        }
+        list.innerHTML = filtered.map((t) => `
+          <div class="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-50/90 dark:bg-zinc-950/90 border border-slate-200/80 dark:border-zinc-800/80 hover:border-emerald-500/30 transition-colors">
+            <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
+              <input type="checkbox" data-toggle-todo="${t.id}" ${t.done ? 'checked' : ''} class="w-4 h-4 rounded accent-emerald-500 shrink-0" />
+              <span class="text-sm truncate ${t.done ? 'line-through text-slate-400 dark:text-zinc-500' : ''}">${escapeHtml(t.text)}</span>
+            </label>
+            <button type="button" data-del-todo="${t.id}" title="Hapus" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        `).join('');
+      }
+
+      $('#todo-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = $('#todo-input').value.trim();
+        if (!text) return;
+        todos.unshift({ id: Date.now(), text, done: false });
+        saveStorage('sakuharian_todos', todos);
+        $('#todo-input').value = '';
+        renderTodos();
+      });
+
+      $('#todo-list').addEventListener('change', (e) => {
+        const cb = e.target.closest('[data-toggle-todo]');
+        if (!cb) return;
+        const id = Number(cb.getAttribute('data-toggle-todo'));
+        todos = todos.map((t) => (t.id === id ? { ...t, done: cb.checked } : t));
+        saveStorage('sakuharian_todos', todos);
+        renderTodos();
+      });
+
+      $('#todo-list').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-del-todo]');
+        if (!btn) return;
+        const id = Number(btn.getAttribute('data-del-todo'));
+        todos = todos.filter((t) => t.id !== id);
+        saveStorage('sakuharian_todos', todos);
+        renderTodos();
+      });
+
+      $$('.todo-filter').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          todoFilter = btn.getAttribute('data-todo-filter');
+          $$('.todo-filter').forEach((b) => {
+            b.className = b === btn
+              ? 'todo-filter px-2.5 py-1 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 shadow-sm'
+              : 'todo-filter px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 dark:text-zinc-400';
+          });
+          renderTodos();
+        });
+      });
+
+      // Pomodoro Timer with Ring
+      let pomoMinutes = 25;
+      let pomoSeconds = 25 * 60;
+      let pomoInterval = null;
+      let pomoMuted = false;
+      const RING_CIRC = 339.292;
+
+      function playChime() {
+        if (pomoMuted) return;
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          const ctx = new AudioCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(660, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.18);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.6);
+        } catch (e) {}
+      }
+
+      function updatePomoUI() {
+        const m = String(Math.floor(pomoSeconds / 60)).padStart(2, '0');
+        const s = String(pomoSeconds % 60).padStart(2, '0');
+        $('#pomo-display').textContent = `${m}:${s}`;
+        const total = Math.max(1, pomoMinutes * 60);
+        const progress = pomoSeconds / total;
+        const ring = $('#pomo-ring');
+        if (ring) {
+          ring.style.strokeDashoffset = String(RING_CIRC * (1 - progress));
+        }
+      }
+
+      $$('.pomo-mode').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          clearInterval(pomoInterval);
+          pomoInterval = null;
+          pomoMinutes = Number(btn.getAttribute('data-pomo'));
+          pomoSeconds = pomoMinutes * 60;
+          $('#pomo-start').textContent = 'Mulai';
+          $('#pomo-status').textContent = 'Siap mulai';
+          $$('.pomo-mode').forEach((b) => {
+            b.className = b === btn
+              ? 'pomo-mode flex-1 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 text-white shadow-sm'
+              : 'pomo-mode flex-1 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-zinc-400';
+          });
+          updatePomoUI();
+        });
+      });
+
+      $('#pomo-start').addEventListener('click', () => {
+        if (pomoInterval) {
+          clearInterval(pomoInterval);
+          pomoInterval = null;
+          $('#pomo-start').textContent = 'Lanjut';
+          $('#pomo-status').textContent = 'Dijeda';
+          return;
+        }
+        $('#pomo-start').textContent = 'Jeda';
+        $('#pomo-status').textContent = 'Sedang berjalan...';
+        pomoInterval = setInterval(() => {
+          if (pomoSeconds > 0) {
+            pomoSeconds--;
+            updatePomoUI();
+          } else {
+            clearInterval(pomoInterval);
+            pomoInterval = null;
+            $('#pomo-start').textContent = 'Mulai';
+            $('#pomo-status').textContent = 'Waktu habis!';
+            playChime();
+            showToast('Sesi timer selesai!');
+          }
+        }, 1000);
+      });
+
+      $('#pomo-reset').addEventListener('click', () => {
+        clearInterval(pomoInterval);
+        pomoInterval = null;
+        pomoSeconds = pomoMinutes * 60;
+        $('#pomo-start').textContent = 'Mulai';
+        $('#pomo-status').textContent = 'Siap mulai';
+        updatePomoUI();
+      });
+
+      $('#pomo-mute').addEventListener('click', () => {
+        pomoMuted = !pomoMuted;
+        $('#pomo-mute').textContent = pomoMuted ? 'Suara: Mati' : 'Suara: Nyala';
+      });
+
+      // ---------- MODULE 3: KALKULATOR ----------
+      function calcDiscount() {
+        const price = Math.max(0, Number($('#disc-price').value) || 0);
+        const pct = Math.min(100, Math.max(0, Number($('#disc-pct').value) || 0));
+        const tax = Math.max(0, Number($('#disc-tax').value) || 0);
+        const saved = price * (pct / 100);
+        const afterDisc = price - saved;
+        const taxVal = afterDisc * (tax / 100);
+        const final = afterDisc + taxVal;
+        $('#disc-saved').textContent = formatRp(saved);
+        $('#disc-tax-val').textContent = formatRp(taxVal);
+        $('#disc-final').textContent = formatRp(final);
+      }
+      ['#disc-price', '#disc-pct', '#disc-tax'].forEach((id) => $(id).addEventListener('input', calcDiscount));
+
+      function calcSplit() {
+        const total = Math.max(0, Number($('#split-total').value) || 0);
+        const people = Math.max(1, Number($('#split-people').value) || 1);
+        const tip = Math.max(0, Number($('#split-tip').value) || 0);
+        const grand = total * (1 + tip / 100);
+        const each = grand / people;
+        $('#split-grand').textContent = formatRp(grand);
+        $('#split-each').textContent = formatRp(each);
+      }
+      ['#split-total', '#split-people', '#split-tip'].forEach((id) => $(id).addEventListener('input', calcSplit));
+
+      $('#split-copy').addEventListener('click', () => {
+        const total = $('#split-grand').textContent;
+        const people = $('#split-people').value || 1;
+        const each = $('#split-each').textContent;
+        copyText(`Info Patungan:\n• Total Tagihan: ${total}\n• Dibagi ${people} orang\n• Masing-masing: ${each}`);
+      });
+
+      // Unit Converter
+      const unitDefs = {
+        weight: {
+          units: { kg: 'Kilogram (kg)', g: 'Gram (g)', ons: 'Ons (100g)', lb: 'Pon (lb)' },
+          toBase: { kg: 1000, g: 1, ons: 100, lb: 453.592 }
+        },
+        length: {
+          units: { km: 'Kilometer (km)', m: 'Meter (m)', cm: 'Sentimeter (cm)', in: 'Inci (in)' },
+          toBase: { km: 1000, m: 1, cm: 0.01, in: 0.0254 }
+        },
+        temp: {
+          units: { C: 'Celsius (°C)', F: 'Fahrenheit (°F)', K: 'Kelvin (K)' }
+        }
+      };
+
+      function populateUnits() {
+        const cat = $('#conv-cat').value;
+        const units = unitDefs[cat].units;
+        const opts = Object.entries(units).map(([k, label]) => `<option value="${k}">${label}</option>`).join('');
+        $('#conv-unit-a').innerHTML = opts;
+        $('#conv-unit-b').innerHTML = opts;
+        const keys = Object.keys(units);
+        if (keys.length > 1) $('#conv-unit-b').value = keys[1];
+        convertUnits();
+      }
+
+      function convertUnits() {
+        const cat = $('#conv-cat').value;
+        const val = parseFloat($('#conv-val-a').value);
+        const uA = $('#conv-unit-a').value;
+        const uB = $('#conv-unit-b').value;
+        if (isNaN(val)) {
+          $('#conv-val-b').value = '';
+          return;
+        }
+        let res = val;
+        if (cat === 'temp') {
+          let c = val;
+          if (uA === 'F') c = (val - 32) * (5 / 9);
+          else if (uA === 'K') c = val - 273.15;
+          if (uB === 'C') res = c;
+          else if (uB === 'F') res = c * (9 / 5) + 32;
+          else if (uB === 'K') res = c + 273.15;
+        } else {
+          const factor = unitDefs[cat].toBase;
+          res = (val * factor[uA]) / factor[uB];
+        }
+        $('#conv-val-b').value = Number(res.toFixed(4)).toString();
+      }
+
+      $('#conv-cat').addEventListener('change', populateUnits);
+      ['#conv-val-a', '#conv-unit-a', '#conv-unit-b'].forEach((id) => $(id).addEventListener('input', convertUnits));
+
+      // ---------- MODULE 4: WA & QR GENERATOR ----------
+      let qrInstance = null;
+
+      function updateWaQr() {
+        let phone = $('#wa-phone').value.replace(/\D/g, '');
+        if (phone.startsWith('0')) phone = '62' + phone.slice(1);
+        else if (phone.startsWith('8')) phone = '62' + phone;
+        const text = $('#wa-text').value.trim();
+        const url = `https://wa.me/${phone}${text ? '?text=' + encodeURIComponent(text) : ''}`;
+        $('#wa-link-preview').textContent = url;
+        $('#wa-open-btn').href = url;
+
+        const box = $('#qrcode-box');
+        box.innerHTML = '';
+        if (typeof QRCode !== 'undefined') {
+          qrInstance = new QRCode(box, {
+            text: url,
+            width: 180,
+            height: 180,
+            colorDark: '#09090b',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        }
+      }
+
+      $('#wa-phone').addEventListener('input', updateWaQr);
+      $('#wa-text').addEventListener('input', updateWaQr);
+      $('#wa-copy-btn').addEventListener('click', () => copyText($('#wa-link-preview').textContent));
+
+      $('#qr-download').addEventListener('click', () => {
+        const canvas = $('#qrcode-box canvas');
+        const img = $('#qrcode-box img');
+        const src = canvas ? canvas.toDataURL('image/png') : (img ? img.src : '');
+        if (!src) return;
+        const a = document.createElement('a');
+        a.href = src;
+        a.download = 'qrcode-wa.png';
+        a.click();
+        showToast('QR Code diunduh!');
+      });
+
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, (m) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[m]));
+      }
+
+      // ---------- Init ----------
+      renderFinance();
+      renderTodos();
+      calcDiscount();
+      calcSplit();
+      populateUnits();
+      updateWaQr();
+      updatePomoUI();
+    })();
+  </script>
+</body>
+</html>
